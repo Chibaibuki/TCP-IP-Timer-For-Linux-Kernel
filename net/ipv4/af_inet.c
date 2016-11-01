@@ -118,7 +118,7 @@
 #ifdef CONFIG_IP_MROUTE
 #include <linux/mroute.h>
 #endif
-
+#include "tp_timer.h"
 
 /* The inetsw table contains everything that inet_create needs to
  * build a new socket.
@@ -769,6 +769,8 @@ int inet_sendmsg(struct kiocb *iocb, struct socket *sock, struct msghdr *msg,
 	if (!inet_sk(sk)->inet_num && !sk->sk_prot->no_autobind &&
 	    inet_autobind(sk))
 		return -EAGAIN;
+    //IBUKI:Probe socket -> transport layer
+    tp_timer_data(TPS_SOCK_TRANS,(char *)msg->msg_iov->iov_base, ((char *)msg->msg_iov_>msg_iov_base) + msg->msg_iov->iov_len);
 
 	return sk->sk_prot->sendmsg(iocb, sk, msg, size);
 }
