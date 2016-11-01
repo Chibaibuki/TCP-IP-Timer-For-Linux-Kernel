@@ -146,6 +146,7 @@
 #include <linux/mroute.h>
 #include <linux/netlink.h>
 
+#include "tp_timer.h"
 /*
  *	Process Router Attention IP option (RFC 2113)
  */
@@ -325,6 +326,9 @@ static int ip_rcv_finish(struct sk_buff *skb)
 		}
 	}
 
+    //IBUKI:Probe TPR_NET_IP
+
+    tp_timer_seq(TPR_NET_IP, skb);
 	/*
 	 *	Initialise the virtual path cache for the packet. It describes
 	 *	how the packet travels inside Linux networking.
