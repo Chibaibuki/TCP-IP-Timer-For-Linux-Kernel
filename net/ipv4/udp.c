@@ -110,6 +110,7 @@
 #include <linux/static_key.h>
 #include <trace/events/skb.h>
 #include "udp_impl.h"
+#include "tp_timer.h"
 
 struct udp_table udp_table __read_mostly;
 EXPORT_SYMBOL(udp_table);
@@ -1023,6 +1024,10 @@ back_from_confirm:
 	up->pending = AF_INET;
 
 do_append_data:
+
+    //Probe UDP-> IP
+    tp_timer_data(TPS_UDP_IP, (char *)msg->msg_iov->iov_base, ((char *)msg->msg_iov->iov_base) + msg->msg_iov->iov_len);
+    
 	up->len += ulen;
 	err = ip_append_data(sk, fl4, getfrag, msg->msg_iov, ulen,
 			     sizeof(struct udphdr), &ipc, &rt,
@@ -1682,6 +1687,8 @@ int __udp4_lib_rcv(struct sk_buff *skb, struct udp_table *udptable,
 	 */
 	if (!pskb_may_pull(skb, sizeof(struct udphdr)))
 		goto drop;		/* No space for header. */
+    //Probe IP->UDP
+    tp_timer_seq(TPR_IP_UDP, skb);
 
 	uh   = udp_hdr(skb);
 	ulen = ntohs(uh->len);
@@ -1709,7 +1716,11 @@ int __udp4_lib_rcv(struct sk_buff *skb, struct udp_table *udptable,
 
 	if (sk != NULL) {
 		int ret = udp_queue_rcv_skb(sk, skb);
+        //IBUKI:Probe UDP-> Socket
+        tp_timer_seq(TPR_UDP_SOCK, skb);
+        
 		sock_put(sk);
+
 
 		/* a return value > 0 means to resubmit the input, but
 		 * it wants the return to be -protocol, or 0
