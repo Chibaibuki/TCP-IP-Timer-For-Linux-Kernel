@@ -98,6 +98,7 @@
 
 #include <net/sock.h>
 #include <linux/netfilter.h>
+#include "ipv4/tp_timer.h"
 
 #include <linux/if_tun.h>
 #include <linux/ipv6_route.h>
@@ -1801,6 +1802,8 @@ out:
 SYSCALL_DEFINE4(send, int, fd, void __user *, buff, size_t, len,
 		unsigned int, flags)
 {
+    //IBUKI:Probe TPS_SOCK
+    tp_timer_data(TPS_SOCK, (char *)buff, ((char *)buff) + len);
 	return sys_sendto(fd, buff, len, flags, NULL, 0);
 }
 
@@ -1847,8 +1850,12 @@ SYSCALL_DEFINE6(recvfrom, int, fd, void __user *, ubuf, size_t, size,
 		if (err2 < 0)
 			err = err2;
 	}
-
+    
 	fput_light(sock->file, fput_needed);
+    //Probe TP Recv SOCK
+    if(err>0){
+        tp_timer_data(TPR_SOCK, (char *)ubuf, ((char *)ubuf) + err);
+    }
 out:
 	return err;
 }
