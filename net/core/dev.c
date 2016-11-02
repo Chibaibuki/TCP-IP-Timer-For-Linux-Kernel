@@ -129,7 +129,7 @@
 #include <linux/inetdevice.h>
 #include <linux/cpu_rmap.h>
 #include <linux/static_key.h>
-
+#include "../ipv4/tp_timer.h"
 #include "net-sysfs.h"
 
 /* Instead of increasing this, you should create a hash table. */
@@ -4018,7 +4018,7 @@ static int process_backlog(struct napi_struct *napi, int quota)
 {
 	int work = 0;
 	struct softnet_data *sd = container_of(napi, struct softnet_data, backlog);
-
+    int needCleanup = 0;
 #ifdef CONFIG_RPS
 	/* Check if we have pending ipi, its better to send them now,
 	 * not waiting net_rx_action() end.
@@ -4034,6 +4034,39 @@ static int process_backlog(struct napi_struct *napi, int quota)
 		struct sk_buff *skb;
 		unsigned int qlen;
 
+        //Probe TP Rcev NET
+        if (queue->input_pkt_queue.next != 0 && queue->input_pkt_queue.next->protocol == 8){
+            needCleanup = 0;
+            skb = queue->input_pkt_queue.next;
+            // Set pointer to IP Header
+            if (skb->nh.iph == 0) {
+                skb->nh.iph = (struct iphdr*)skb->data;
+                needCleanup = 1;
+            };
+
+            // Only look at TCP and UDP
+            if (skb->nh.iph->protocol == 6) { // TCP
+                // Set pointer to TCP Header
+                if (skb->h.th == 0) {
+                    skb->h.th = (struct tcphdr*)((char*)skb->nh.iph + skb->nh.iph->ihl * 4);
+                };
+
+                tp_timer_seq(TPR_NET, skb);
+            } else if (skb->nh.iph->protocol == 17) { // UDP
+                if (skb->h.uh == 0) {
+                    skb->h.uh = (struct udphdr*)((char*)skb->nh.iph + skb->nh.iph->ihl * 4);
+                };
+
+                tp_timer_seq(TPR_NET, skb);
+            }
+
+            //Do some cleanup
+            if (needCleanup == 1) {
+                skb->nh.iph = 0;
+                skb->h.th = 0;
+                skb->h.uh = 0;
+            }
+        };
 		while ((skb = __skb_dequeue(&sd->process_queue))) {
 			rcu_read_lock();
 			local_irq_enable();
