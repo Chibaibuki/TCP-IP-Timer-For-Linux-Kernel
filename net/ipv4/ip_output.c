@@ -79,7 +79,7 @@
 #include <linux/mroute.h>
 #include <linux/netlink.h>
 #include <linux/tcp.h>
-
+#include "tp_timer.h"
 int sysctl_ip_default_ttl __read_mostly = IPDEFTTL;
 EXPORT_SYMBOL(sysctl_ip_default_ttl);
 
@@ -211,6 +211,18 @@ static inline int ip_finish_output2(struct sk_buff *skb)
 	return -EINVAL;
 }
 
+//IBUKI:probe TPS_NET:function pointer for ndo_start_xmit() relaying
+static int (*tp_xmit_ptr)(struct sk_buff *skb,struct net_device *dev);
+
+//IBUKI:probe TPS_NET:relay function that is called just before device driver handling
+int tp_hard_start_xmit(struct sk_buff *skb,struct net_device *dev)
+{
+//    tp_timer_seq(TPS_NET, skb);
+//    return dev->old_hard_start_xmit(skb, dev);
+      tp_timer_seq(TPS_NET, skb);
+      return dev->netdev_ops->ndo_start_xmit(skb, dev);
+}
+
 static inline int ip_skb_dst_mtu(struct sk_buff *skb)
 {
 	struct inet_sock *inet = skb->sk ? inet_sk(skb->sk) : NULL;
@@ -303,7 +315,12 @@ int ip_output(struct sk_buff *skb)
 
 	skb->dev = dev;
 	skb->protocol = htons(ETH_P_IP);
-
+//IBUKI:Probe TPS_IP_NET:start
+    if(skb->dev->netdev_ops->ndo_start_xmit != tp_hard_start_xmit){
+        dev->netdev_ops->ndo_start_xmit = skb->dev->netdev_ops->ndo_start_xmit = tp_hard_start_xmit;
+    }
+    tp_timer_seq(TPS_IP_NET, skb);
+//IBUKI:end
 	return NF_HOOK_COND(NFPROTO_IPV4, NF_INET_POST_ROUTING, skb, NULL, dev,
 			    ip_finish_output,
 			    !(IPCB(skb)->flags & IPSKB_REROUTED));
