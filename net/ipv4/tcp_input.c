@@ -76,6 +76,8 @@
 #include <asm/unaligned.h>
 #include <net/netdma.h>
 
+#include "tp_timer.h"
+
 int sysctl_tcp_timestamps __read_mostly = 1;
 int sysctl_tcp_window_scaling __read_mostly = 1;
 int sysctl_tcp_sack __read_mostly = 1;
@@ -5264,6 +5266,9 @@ int tcp_rcv_established(struct sock *sk, struct sk_buff *skb,
 						      &fragstolen);
 			}
 
+            //IBUKI:Probe TP Recv Tcp <->SOCK
+            tp_timer_seq(TPR_TCP_SOCK, skb);
+
 			tcp_event_data_recv(sk, skb);
 
 			if (TCP_SKB_CB(skb)->ack_seq != tp->snd_una) {
@@ -5292,6 +5297,8 @@ no_ack:
 slow_path:
 	if (len < (th->doff << 2) || tcp_checksum_complete_user(sk, skb))
 		goto csum_error;
+    //Probe TP Recv TCP <-> SOCK (slow path)
+    tp_timer_seq(TPR_TCP_SOCK, skb);
 
 	if (!th->ack && !th->rst)
 		goto discard;
@@ -5304,6 +5311,9 @@ slow_path:
 		return 0;
 
 step5:
+    //Probe TP Recv TCP <-> SOCK (slow path)
+    tp_timer_seq(TPR_TCP_SOCK, skb);
+
 	if (tcp_ack(sk, skb, FLAG_SLOWPATH | FLAG_UPDATE_TS_RECENT) < 0)
 		goto discard;
 
