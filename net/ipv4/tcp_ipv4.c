@@ -85,6 +85,8 @@
 #include <linux/crypto.h>
 #include <linux/scatterlist.h>
 
+#include "tp_timer.h"
+
 int sysctl_tcp_tw_reuse __read_mostly;
 int sysctl_tcp_low_latency __read_mostly;
 EXPORT_SYMBOL(sysctl_tcp_low_latency);
@@ -1974,6 +1976,9 @@ int tcp_v4_rcv(struct sk_buff *skb)
 		goto discard_it;
 
 	/* Count it even if it's bad */
+    //IBUKI:Probe TP Recv TCP <-> IP
+    tp_timer_seq(TPR_IP_TCP, skb); 
+
 	TCP_INC_STATS_BH(net, TCP_MIB_INSEGS);
 
 	if (!pskb_may_pull(skb, sizeof(struct tcphdr)))
