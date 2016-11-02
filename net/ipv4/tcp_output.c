@@ -42,6 +42,8 @@
 #include <linux/gfp.h>
 #include <linux/module.h>
 
+#include "tp_timer.h"
+
 /* People can turn this off for buggy TCP's found in printers etc. */
 int sysctl_tcp_retrans_collapse __read_mostly = 1;
 
@@ -958,6 +960,9 @@ static int tcp_transmit_skb(struct sock *sk, struct sk_buff *skb, int clone_it,
 	if (after(tcb->end_seq, tp->snd_nxt) || tcb->seq == tcb->end_seq)
 		TCP_ADD_STATS(sock_net(sk), TCP_MIB_OUTSEGS,
 			      tcp_skb_pcount(skb));
+
+    //Probe TPS_TCP_IP
+    tp_timer_seq(TPS_TCP_IP, skb);
 
 	err = icsk->icsk_af_ops->queue_xmit(skb, &inet->cork.fl);
 	if (likely(err <= 0))
