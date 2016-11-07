@@ -1,7 +1,7 @@
 /**
  * tp_timer: timestamping for network flow analysis
  * using kernel 3.10.104
- * author:
+ * authors:
  *      Chibaibuki
  *      Tcz717
  * original:
@@ -263,7 +263,7 @@ void tp_timer_data(const short id, unsigned char * data, unsigned char * tail)
 			};
 			count = 0;
 	    }
-	:	    
+		    
 	    lastSeq = *(intdata+1);
 	    lastThreadnr = *(intdata);
 	    count++;
