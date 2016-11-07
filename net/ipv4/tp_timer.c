@@ -1,12 +1,15 @@
 /**
  * tp_timer: timestamping for network flow analysis
- * using kernel 2.6.9
- * 
- * authors:
+ * using kernel 3.10.104
+ * author:
+ *      Chibaibuki
+ *      Tcz717
+ * original:
  * 		Jan Demter
  * 		Christian Dickmann
  * 		Henning Peters
  */
+
 #include <linux/types.h>
 #include <linux/time.h>
 #include <linux/kernel.h>
@@ -260,7 +263,7 @@ void tp_timer_data(const short id, unsigned char * data, unsigned char * tail)
 			};
 			count = 0;
 	    }
-		    
+	:	    
 	    lastSeq = *(intdata+1);
 	    lastThreadnr = *(intdata);
 	    count++;
@@ -272,6 +275,7 @@ void tp_timer_data(const short id, unsigned char * data, unsigned char * tail)
 
 void tp_timer_seq(const short id, struct sk_buff * skb)
 {
+
 	if (skb->nh.iph != 0 && skb->nh.iph->protocol == 17) {
 		unsigned char * data = (unsigned char*)skb->h.uh + 4 * 2;
 		tp_timer_data(id, data, skb->tail);
