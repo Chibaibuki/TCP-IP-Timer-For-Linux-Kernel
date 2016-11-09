@@ -215,7 +215,7 @@ static inline int ip_finish_output2(struct sk_buff *skb)
 static int (*tp_xmit_ptr)(struct sk_buff *skb,struct net_device *dev);
 
 //IBUKI:probe TPS_NET:relay function that is called just before device driver handling
-int tp_hard_start_xmit(struct sk_buff *skb,struct net_device *dev)
+netdev_tx_t tp_hard_start_xmit(struct sk_buff *skb,struct net_device *dev)
 {
 //    tp_timer_seq(TPS_NET, skb);
 //    return dev->old_hard_start_xmit(skb, dev);
