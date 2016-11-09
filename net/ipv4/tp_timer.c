@@ -275,18 +275,29 @@ void tp_timer_data(const short id, unsigned char * data, unsigned char * tail)
 
 void tp_timer_seq(const short id, struct sk_buff * skb)
 {
-
+/*
 	if (skb->nh.iph != 0 && skb->nh.iph->protocol == 17) {
 		unsigned char * data = (unsigned char*)skb->h.uh + 4 * 2;
 		tp_timer_data(id, data, skb->tail);
 	}
-	
+*/
+    if (skb->network_header != 0 && skb->network_header->protocol == 17) {
+            unsigned char * data = (unsigned char*)skb->transport_header + 4 * 2;
+            tp_timer_data(id, data, skb->tail);
+            }
+
+/*      
     if (skb->nh.iph == 0 || skb->nh.iph->protocol == 6) { // TCP
-			
+
 		char * doff = (((char*)(skb->h.th)+12));
 		int * flags = (int*)(doff + 1);
 		unsigned char * data = (unsigned char *)((unsigned char*)skb->h.th + ((*doff) >> 4 & 15) * 4);
-	
+*/
+    if (skb->network_header == 0 || skb->network_header->protocol == 6) {
+        char * doff = (((char *)(skb->transport_header) + 12 ));
+        int * flags = (int *)(doff + 1);
+        unsigned char * data = (unsigned char *)((unsigned char*)skb->transport_header + ((*dogg) >> 4 & 15 ) * 4);
+        
 		/*if (*(doff - 9) != 22) { // dport
 		    return;
 		}*/
