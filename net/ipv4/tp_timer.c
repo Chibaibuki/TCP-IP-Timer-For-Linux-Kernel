@@ -281,7 +281,7 @@ void tp_timer_seq(const short id, struct sk_buff * skb)
 		tp_timer_data(id, data, skb->tail);
 	}
 */
-    if (skb->network_header != 0 && skb->network_header->protocol == 17) {
+    if (skb->network_header != 0 && ((struct *iphdr)skb->network_header)->protocol == 17) {
             unsigned char * data = (unsigned char*)skb->transport_header + 4 * 2;
             tp_timer_data(id, data, skb->tail);
             }
@@ -293,7 +293,7 @@ void tp_timer_seq(const short id, struct sk_buff * skb)
 		int * flags = (int*)(doff + 1);
 		unsigned char * data = (unsigned char *)((unsigned char*)skb->h.th + ((*doff) >> 4 & 15) * 4);
 */
-    if (skb->network_header == 0 || skb->network_header->protocol == 6) {
+    if (skb->network_header == 0 || ((struct *iphdr)skb->network_header)->protocol == 6) {
         char * doff = (((char *)(skb->transport_header) + 12 ));
         int * flags = (int *)(doff + 1);
         unsigned char * data = (unsigned char *)((unsigned char*)skb->transport_header + ((*dogg) >> 4 & 15 ) * 4);

@@ -4037,7 +4037,7 @@ static int process_backlog(struct napi_struct *napi, int quota)
         //Probe TP Rcev NET
         if (&sd->input_pkt_queue.next != 0 && &sd->input_pkt_queue.next->protocol == 8){
             needCleanup = 0;
-            skb = queue->input_pkt_queue.next;
+            skb = &sd->input_pkt_queue.next;
             // Set pointer to IP Header
           /*  if (skb->nh.iph == 0) {
                 skb->nh.iph = (struct iphdr*)skb->data;
@@ -4064,13 +4064,13 @@ static int process_backlog(struct napi_struct *napi, int quota)
 
                 tp_timer_seq(TPR_NET, skb);
             }*/
-              if (skb->network_header->protocol == 6) {
+              if (((struct iphdr *)skb->network_header)->protocol == 6) {
                   if (skb->transport_header ==0){
                       struct iphdr * skb_iph=ip_hdr(skb);
                       skb_set_transport_header(skb, skb_iph->ihl * 4);
                   }
                   tp_timer_seq(TPR_NET, skb);
-              }else if (skb_iph->protocol == 17) {
+              }else if (((struct iphdr*)skb->network_header)->protocol == 17) {
                   if (skb->transport_header ==0){
                       struct iphdr * skb_iph=ip_hdr(skb);
                       skb_set_transport_header(skb, skb_iph->ihl * 4);
