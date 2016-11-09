@@ -544,7 +544,7 @@ static inline bool skb_pfmemalloc(const struct sk_buff *skb)
  *
  * Returns skb dst_entry, regardless of reference taken or not.
  */
-static inline struct dst_entry *skb_dst(const struct sk_buff *skb)
+static inline struct dst_entry *skb_dst(struct sk_buff *skb)
 {
 	/* If refdst was not refcounted, check we still are in a 
 	 * rcu_read_lock section
